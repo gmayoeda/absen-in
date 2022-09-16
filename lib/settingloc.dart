@@ -1,4 +1,7 @@
+// ignore_for_file: unused_import
+
 import 'package:absenin/home.dart';
+import 'package:absenin/maps.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,23 +20,42 @@ class _settingLocationState extends State<settingLocation> {
 
   TextEditingController lat = TextEditingController();
   TextEditingController long = TextEditingController();
+  TextEditingController alamat = TextEditingController();
 
-  void getCurrentPosition() async {
-    LocationPermission permission = await Geolocator.checkPermission();
+  // void getCurrentPosition() async {
+  //   LocationPermission permission = await Geolocator.checkPermission();
 
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      print("Permissions not given");
-      // ignore: unused_local_variable
-      LocationPermission asked = await Geolocator.requestPermission();
-    } else {
-      Position currentPosition = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.best);
+  //   if (permission == LocationPermission.denied ||
+  //       permission == LocationPermission.deniedForever) {
+  //     print("Permissions not given");
+  //     // ignore: unused_local_variable
+  //     LocationPermission asked = await Geolocator.requestPermission();
+  //   } else {
+  //     Position currentPosition = await Geolocator.getCurrentPosition(
+  //         desiredAccuracy: LocationAccuracy.best);
 
+  //     setState(() {
+  //       lat = TextEditingController(text: currentPosition.latitude.toString());
+  //       long =
+  //           TextEditingController(text: currentPosition.longitude.toString());
+  //     });
+  //   }
+  // }
+
+  Future<void> _navigateAndDisplaySelection(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => MapScreen()),
+    );
+    if (!mounted) return;
+    print("====================================================");
+    print(result);
+
+    if (result != null) {
       setState(() {
-        lat = TextEditingController(text: currentPosition.latitude.toString());
-        long =
-            TextEditingController(text: currentPosition.longitude.toString());
+        lat = TextEditingController(text: result[0]);
+        long = TextEditingController(text: result[1]);
+        alamat = TextEditingController(text: result[2]);
       });
     }
   }
@@ -63,6 +85,7 @@ class _settingLocationState extends State<settingLocation> {
       sharedPreferences = await SharedPreferences.getInstance();
       sharedPreferences.setString("latSave", lat.text);
       sharedPreferences.setString("longSave", long.text);
+      sharedPreferences.setString("alamat", alamat.text);
     }
   }
 
@@ -72,6 +95,8 @@ class _settingLocationState extends State<settingLocation> {
       lat = TextEditingController(text: sharedPreferences.getString("latSave"));
       long =
           TextEditingController(text: sharedPreferences.getString("longSave"));
+      alamat =
+          TextEditingController(text: sharedPreferences.getString("alamat"));
     });
   }
 
@@ -170,6 +195,32 @@ class _settingLocationState extends State<settingLocation> {
                       ),
                     ),
                   ),
+                  Container(
+                    margin: EdgeInsets.only(top: 15),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                      color: Colors.white,
+                    ),
+                    padding: EdgeInsets.only(left: 10),
+                    child: TextFormField(
+                      // enabled: false,
+                      maxLines: null,
+                      controller: alamat,
+                      validator: (e) {
+                        if (e!.isEmpty) {
+                          return "Null Alamat";
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        prefixIcon: Icon(Icons.house_rounded),
+                        hintText: 'Alamat',
+                        contentPadding:
+                            EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
+                      ),
+                    ),
+                  ),
                   SizedBox(height: 15),
                   InkWell(
                     child: Row(
@@ -188,7 +239,8 @@ class _settingLocationState extends State<settingLocation> {
                       ],
                     ),
                     onTap: () {
-                      getCurrentPosition();
+                      // getCurrentPosition();
+                      _navigateAndDisplaySelection(context);
                     },
                   ),
                   SizedBox(height: 40),
